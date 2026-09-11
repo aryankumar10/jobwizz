@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "JobWizz",
+  "version": "1.0.0",
+  "description": "Job Tracker for LinkedIn and Handshake",
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "alarms"
+  ],
+  "host_permissions": [
+    "*://www.linkedin.com/jobs/*",
+    "*://*.joinhandshake.com/*",
+    "*://app.joinhandshake.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "JobWizz - Job Tracker"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.linkedin.com/jobs/*"],
+      "js": ["content/linkedin-extractor.js"]
+    },
+    {
+      "matches": ["*://*.joinhandshake.com/*", "*://app.joinhandshake.com/*"],
+      "js": ["content/handshake-extractor.js"]
+    }
+  ]
+}
