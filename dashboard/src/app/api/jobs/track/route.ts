@@ -118,16 +118,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Combine: use whichever source is richer, or both
+    // Combine: extension text (from authenticated session) takes priority
     let textForAI = '';
     if (pageTitle) {
       textForAI += `Page Title: ${pageTitle}\n\n`;
     }
-    // Use the longer of server-fetched vs content-script text, or combine both if they're different enough
-    if (serverFetchedText.length > 200 && pageText && pageText.length > 200) {
-      // Both have substantial content — use server fetch (has full HTML data) + any unique content script data
-      textForAI += serverFetchedText.slice(0, 4000) + '\n\n--- Additional page content ---\n' + pageText.slice(0, 2000);
-    } else if (serverFetchedText.length > pageText.length) {
+    if (pageText && pageText.length > 200) {
+      // Extension's text is from the user's authenticated session — richest source
+      textForAI += pageText;
+    } else if (serverFetchedText.length > 200) {
+      // Fallback to server-fetched text (public view, may be limited)
       textForAI += serverFetchedText;
     } else if (pageText) {
       textForAI += pageText;
