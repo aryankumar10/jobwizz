@@ -49,9 +49,18 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
     }
   };
 
+  const handleUpdateJob = async (id: string, updatedData: Partial<Job>) => {
+    setJobs(jobs.map(j => j.id === id ? { ...j, ...updatedData } : j));
+    try {
+      await updateJob(id, updatedData);
+    } catch (error) {
+      setJobs(initialJobs);
+      console.error('Failed to update job', error);
+      alert('Failed to update job. Please try again.');
+    }
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this job application?')) return;
-    
     setJobs(jobs.filter(j => j.id !== id));
     try {
       await deleteJob(id);
@@ -194,6 +203,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
           onStatusChange={handleStatusChange}
           onDelete={handleDelete}
           onUpdateNotes={handleUpdateNotes}
+          onUpdateJob={handleUpdateJob}
         />
       </div>
 

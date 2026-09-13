@@ -1,6 +1,6 @@
 'use client';
 
-import { Job, JobStatus } from '@/lib/types';
+import { Job, JobStatus, JobSource } from '@/lib/types';
 import { useState } from 'react';
 
 interface JobTableProps {
@@ -8,6 +8,8 @@ interface JobTableProps {
   onStatusChange?: (id: string, newStatus: Job['status']) => void;
   onDelete?: (id: string) => void;
   onUpdateNotes?: (id: string, notes: string) => void;
+  onUpdateJob?: (id: string, updatedData: Partial<Job>) => void;
+  onEdit?: (job: Job) => void;
   editable?: boolean;
 }
 
@@ -27,10 +29,75 @@ const sourceColors: Record<string, string> = {
 };
 
 const statuses: JobStatus[] = ['Applied', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
+const sources: JobSource[] = ['LinkedIn', 'Handshake', 'Indeed', 'Other'];
 
-export default function JobTable({ jobs, onStatusChange, onDelete, onUpdateNotes, editable = false }: JobTableProps) {
+export default function JobTable({ 
+  jobs, 
+  onStatusChange, 
+  onDelete, 
+  onUpdateNotes, 
+  onUpdateJob,
+  onEdit,
+  editable = false 
+}: JobTableProps) {
   const [selectedJobForNotes, setSelectedJobForNotes] = useState<Job | null>(null);
   const [editingNotesText, setEditingNotesText] = useState('');
+
+  // Full Edit Modal State
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [editRole, setEditRole] = useState('');
+  const [editCompany, setEditCompany] = useState('');
+  const [editSource, setEditSource] = useState<JobSource>('Other');
+  const [editLocation, setEditLocation] = useState('');
+  const [editSalary, setEditSalary] = useState('');
+  const [editAppliedOn, setEditAppliedOn] = useState('');
+  const [editStatus, setEditStatus] = useState<JobStatus>('Applied');
+  const [editJobUrl, setEditJobUrl] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+
+  // Delete Confirmation Modal State
+  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (jobToDelete && onDelete) {
+      onDelete(jobToDelete.id);
+    }
+    setJobToDelete(null);
+  };
+
+  const handleOpenEditModal = (job: Job) => {
+    setEditingJob(job);
+    setEditRole(job.role);
+    setEditCompany(job.company);
+    setEditSource(job.source || 'Other');
+    setEditLocation(job.location || '');
+    setEditSalary(job.salary || '');
+    setEditAppliedOn(job.applied_on ? job.applied_on.split('T')[0] : '');
+    setEditStatus(job.status);
+    setEditJobUrl(job.job_url || '');
+    setEditNotes(job.notes || '');
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingJob) return;
+
+    if (onUpdateJob) {
+      onUpdateJob(editingJob.id, {
+        role: editRole.trim(),
+        company: editCompany.trim(),
+        source: editSource,
+        location: editLocation.trim() || null,
+        salary: editSalary.trim() || null,
+        applied_on: editAppliedOn || new Date().toISOString().split('T')[0],
+        status: editStatus,
+        job_url: editJobUrl.trim() || null,
+        notes: editNotes.trim() || null,
+      });
+    }
+
+    setEditingJob(null);
+  };
 
   if (jobs.length === 0) {
     return (
@@ -140,13 +207,37 @@ export default function JobTable({ jobs, onStatusChange, onDelete, onUpdateNotes
                   </button>
                 </td>
                 {editable && (
-                  <td className="px-6 py-4 text-right">
-                    <button 
-                      onClick={() => onDelete && onDelete(job.id)}
-                      className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                    >
-                      Delete
-                    </button>
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1">
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          if (onEdit) {
+                            onEdit(job);
+                          } else {
+                            handleOpenEditModal(job);
+                          }
+                        }}
+                        title="Edit Application"
+                        aria-label="Edit Application"
+                        className="p-1.5 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setJobToDelete(job)}
+                        title="Delete Application"
+                        aria-label="Delete Application"
+                        className="p-1.5 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 )}
               </tr>
@@ -191,6 +282,188 @@ export default function JobTable({ jobs, onStatusChange, onDelete, onUpdateNotes
                   Save Notes
                 </button>
               ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Job Modal */}
+      {editingJob && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-2 border-b dark:border-slate-800">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit Job Application</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Update details for this tracked application</p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setEditingJob(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg leading-none p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Role *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Company *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={editCompany}
+                    onChange={(e) => setEditCompany(e.target.value)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Source</label>
+                  <select 
+                    value={editSource}
+                    onChange={(e) => setEditSource(e.target.value as JobSource)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {sources.map(src => (
+                      <option key={src} value={src}>{src}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Location</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. San Jose, CA / Remote"
+                    value={editLocation}
+                    onChange={(e) => setEditLocation(e.target.value)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Salary</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. $45/hr or $130k"
+                    value={editSalary}
+                    onChange={(e) => setEditSalary(e.target.value)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Date Applied</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={editAppliedOn}
+                    onChange={(e) => setEditAppliedOn(e.target.value)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Status</label>
+                  <select 
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value as JobStatus)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {statuses.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Job URL</label>
+                <input 
+                  type="url" 
+                  placeholder="https://..."
+                  value={editJobUrl}
+                  onChange={(e) => setEditJobUrl(e.target.value)}
+                  className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Notes</label>
+                <textarea 
+                  rows={3} 
+                  placeholder="Interview stages, recruiter contact, referral notes..."
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingJob(null)}
+                  className="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {jobToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-950/60 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Delete Application</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                  Are you sure you want to delete <span className="font-semibold text-slate-900 dark:text-white">"{jobToDelete.role}"</span> at <span className="font-semibold text-slate-900 dark:text-white">"{jobToDelete.company}"</span>? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setJobToDelete(null)}
+                className="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-md hover:bg-red-700 shadow-sm transition-colors"
+              >
+                Delete Application
+              </button>
             </div>
           </div>
         </div>
