@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createServerCookieClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('TrackAPI');
 
 // CORS response helper
 function corsResponse(body: any, status = 200) {
@@ -38,11 +41,11 @@ export async function POST(req: NextRequest) {
       manualData = {},
     } = body;
 
-    console.log('JobWizz Track API received:', {
+    log.info('Job application track request received', {
       jobUrl,
       pageTextLength: pageText?.length || 0,
       pageTitle,
-      manualDataKeys: Object.keys(manualData),
+      status,
     });
 
     // 1. Authenticate user via Bearer token or cookies
@@ -109,12 +112,12 @@ export async function POST(req: NextRequest) {
 
     let serverFetchedText = '';
     if (jobUrl) {
-      console.log('JobWizz: Fetching page server-side from URL...');
+      log.debug('Fetching page server-side from URL', { jobUrl });
       try {
         serverFetchedText = await fetchPageText(jobUrl);
-        console.log('JobWizz: Server fetch got', serverFetchedText.length, 'chars');
+        log.debug('Server-side fetch completed', { chars: serverFetchedText.length });
       } catch (fetchErr) {
-        console.warn('JobWizz: Server-side page fetch failed:', fetchErr);
+        log.warn('Server-side page fetch failed', fetchErr);
       }
     }
 
@@ -133,7 +136,7 @@ export async function POST(req: NextRequest) {
       textForAI += pageText;
     }
 
-    console.log('JobWizz: Final text for AI:', textForAI.length, 'chars. First 300:', textForAI.slice(0, 300));
+    log.debug('Prepared text context for Gemini AI', { chars: textForAI.length });
 
     // 4. Extract with Gemini AI
     let aiExtracted: Record<string, string> = {};
@@ -175,17 +178,17 @@ ${textForAI.slice(0, 16000)}
           if (text) {
             const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
             aiExtracted = JSON.parse(clean);
-            console.log('JobWizz: Gemini extracted:', JSON.stringify(aiExtracted));
+            log.info('Gemini AI successfully extracted job details', aiExtracted);
           }
         } else {
           const errBody = await aiRes.text().catch(() => '');
-          console.warn('JobWizz: Gemini API error', aiRes.status, errBody.slice(0, 500));
+          log.warn('Gemini API call failed', { status: aiRes.status, error: errBody.slice(0, 300) });
         }
       } catch (aiErr) {
-        console.warn('JobWizz: Gemini extraction failed:', aiErr);
+        log.warn('Gemini extraction failed with error', aiErr);
       }
     } else {
-      console.warn('JobWizz: Skipping Gemini — no API key or text too short');
+      log.warn('Skipping Gemini AI extraction: API key missing or text context too short');
     }
 
     // 5. If Gemini failed, try parsing the page title directly (very reliable for LinkedIn/Handshake)
@@ -194,7 +197,7 @@ ${textForAI.slice(0, 16000)}
       if (titleParsed.role) aiExtracted.role = aiExtracted.role || titleParsed.role;
       if (titleParsed.company) aiExtracted.company = aiExtracted.company || titleParsed.company;
       if (titleParsed.location) aiExtracted.location = aiExtracted.location || titleParsed.location;
-      console.log('JobWizz: Title fallback parsed:', JSON.stringify(titleParsed));
+      log.info('Title fallback parser extracted details', titleParsed);
     }
 
     // 6. Merge: Gemini AI > DOM manualData > heuristics
@@ -219,7 +222,7 @@ ${textForAI.slice(0, 16000)}
     if (!merged.company) merged.company = 'Unknown Company';
     if (!merged.source) merged.source = detectSourceFromUrl(jobUrl);
 
-    console.log('JobWizz: Final merged result:', JSON.stringify(merged));
+    log.info('Final application details prepared for database', merged);
 
     // 8. Insert into Supabase
     const newRecord = {
@@ -242,9 +245,11 @@ ${textForAI.slice(0, 16000)}
       .single();
 
     if (insertError) {
-      console.error('JobWizz: Supabase insert error', insertError);
+      log.error('Supabase insert failed', insertError);
       return corsResponse({ error: insertError.message }, 500);
     }
+
+    log.info('Job application successfully tracked', { id: insertedData.id, role: insertedData.role });
 
     return corsResponse({
       success: true,
@@ -252,7 +257,7 @@ ${textForAI.slice(0, 16000)}
       aiUsed: Object.keys(aiExtracted).length > 0,
     });
   } catch (err: any) {
-    console.error('JobWizz: Track API error', err);
+    log.error('Unhandled error in track route', err);
     return corsResponse({ error: err.message || 'Internal server error' }, 500);
   }
 }
