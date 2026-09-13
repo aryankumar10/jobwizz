@@ -8,6 +8,7 @@ export interface Job {
   company: string;
   source: JobSource;
   location: string | null;
+  salary?: string | null;
   applied_on: string; // ISO date string
   job_url: string | null;
   status: JobStatus;

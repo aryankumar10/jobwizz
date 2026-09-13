@@ -64,6 +64,7 @@ export default function JobTable({ jobs, onStatusChange, onDelete, onUpdateNotes
               <th className="px-6 py-4">Company</th>
               <th className="px-6 py-4">Source</th>
               <th className="px-6 py-4">Location</th>
+              <th className="px-6 py-4">Salary</th>
               <th className="px-6 py-4">Date Applied</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Notes</th>
@@ -100,6 +101,13 @@ export default function JobTable({ jobs, onStatusChange, onDelete, onUpdateNotes
                 </td>
                 <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                   {job.location || '—'}
+                </td>
+                <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">
+                  {job.salary ? (
+                    <span className="inline-block px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-800">
+                      {job.salary}
+                    </span>
+                  ) : '—'}
                 </td>
                 <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                   {job.applied_on ? new Date(job.applied_on).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}

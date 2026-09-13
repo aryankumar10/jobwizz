@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.jobs (
   company TEXT NOT NULL,
   source TEXT NOT NULL DEFAULT 'Unknown',
   location TEXT,
+  salary TEXT,
   applied_on DATE NOT NULL DEFAULT CURRENT_DATE,
   job_url TEXT,
   status TEXT NOT NULL DEFAULT 'Applied',
@@ -22,6 +23,10 @@ CREATE TABLE IF NOT EXISTS public.jobs (
 CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON public.jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON public.jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON public.jobs(created_at DESC);
+
+-- Prevent duplicate job URLs per user
+CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_user_url ON public.jobs(user_id, job_url)
+  WHERE job_url IS NOT NULL;
 
 -- 3. Enable Row Level Security (RLS)
 ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;

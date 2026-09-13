@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "JobWizz",
-  "version": "1.0.0",
-  "description": "Job Tracker for LinkedIn and Handshake",
+  "version": "1.1.0",
+  "description": "Smart Job Application Tracker with AI Auto-Capture for LinkedIn, Handshake, and Career Sites",
   "permissions": [
     "storage",
     "tabs",
@@ -11,9 +11,14 @@
     "alarms"
   ],
   "host_permissions": [
-    "*://www.linkedin.com/jobs/*",
+    "http://localhost:3000/*",
+    "https://*.vercel.app/*",
+    "*://*.linkedin.com/*",
     "*://*.joinhandshake.com/*",
-    "*://app.joinhandshake.com/*"
+    "*://app.joinhandshake.com/*",
+    "*://*.indeed.com/*",
+    "*://*.greenhouse.io/*",
+    "*://*.lever.co/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -25,12 +30,25 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://www.linkedin.com/jobs/*"],
+      "matches": ["*://*.linkedin.com/jobs/*"],
       "js": ["content/linkedin-extractor.js"]
     },
     {
-      "matches": ["*://*.joinhandshake.com/*", "*://app.joinhandshake.com/*"],
+      "matches": [
+        "*://*.joinhandshake.com/*",
+        "*://app.joinhandshake.com/*",
+        "*://*.joinhandshake.com/jobs/*",
+        "*://*.joinhandshake.com/stu/jobs/*"
+      ],
       "js": ["content/handshake-extractor.js"]
+    },
+    {
+      "matches": [
+        "*://*.indeed.com/*",
+        "*://*.greenhouse.io/*",
+        "*://*.lever.co/*"
+      ],
+      "js": ["content/generic-extractor.js"]
     }
   ]
 }

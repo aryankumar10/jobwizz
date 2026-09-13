@@ -6,97 +6,124 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <header>
-    <h1>JobWizz</h1>
+  <header class="header-row">
+    <div class="brand">
+      <span class="logo-icon">💼</span>
+      <h1>JobWizz</h1>
+    </div>
+    <span id="aiIndicator" class="ai-badge">✨ AI Ready</span>
   </header>
 
   <div id="toast" class="hidden"></div>
 
-  <form id="jobForm">
-    <div class="form-group">
-      <label for="role">Role</label>
-      <input type="text" id="role" name="role" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="company">Company</label>
-      <input type="text" id="company" name="company" required>
+  <!-- Primary 1-Click Track Section -->
+  <main id="mainSection">
+    <div class="quick-card">
+      <div class="detected-info">
+        <span id="detectedSourceBadge" class="source-badge">Detecting...</span>
+        <span id="urlPreview" class="url-preview" title="">No active job page detected</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="appliedOn">Applied On</label>
+          <input type="date" id="appliedOn">
+        </div>
+        <div class="form-group flex-1">
+          <label for="quickStatus">Status</label>
+          <select id="quickStatus">
+            <option value="Applied" selected>Applied</option>
+            <option value="Interview">Interview</option>
+            <option value="Offer">Offer</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Withdrawn">Withdrawn</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="quickNotes">Notes (Optional)</label>
+        <input type="text" id="quickNotes" placeholder="e.g. Referral by John, Round 1 scheduled...">
+      </div>
+
+      <button type="button" id="btnTrack" class="btn btn-primary btn-large">
+        <span id="trackBtnText">🚀 Add to My Jobs</span>
+      </button>
     </div>
 
-    <div class="form-group">
-      <label for="source">Source</label>
-      <select id="source" name="source">
-        <option value="LinkedIn">LinkedIn</option>
-        <option value="Handshake">Handshake</option>
-        <option value="Indeed">Indeed</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
+    <!-- Manual Entry Accordion -->
+    <details class="manual-accordion" id="manualDrawer">
+      <summary>✏️ Edit / Enter Details Manually</summary>
+      <form id="manualForm">
+        <div class="form-group">
+          <label for="manualRole">Role Title</label>
+          <input type="text" id="manualRole" placeholder="e.g. Software Engineer">
+        </div>
+        <div class="form-group">
+          <label for="manualCompany">Company</label>
+          <input type="text" id="manualCompany" placeholder="e.g. Google">
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="manualLocation">Location</label>
+            <input type="text" id="manualLocation" placeholder="e.g. San Francisco, CA">
+          </div>
+          <div class="form-group flex-1">
+            <label for="manualSalary">Salary</label>
+            <input type="text" id="manualSalary" placeholder="e.g. $140K - $170K">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="manualSource">Source</label>
+          <select id="manualSource">
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Handshake">Handshake</option>
+            <option value="Indeed">Indeed</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="manualJobUrl">Job URL</label>
+          <input type="url" id="manualJobUrl">
+        </div>
+      </form>
+    </details>
 
-    <div class="form-group">
-      <label for="location">Location</label>
-      <input type="text" id="location" name="location">
+    <!-- Offline / Guest Actions -->
+    <div class="offline-actions">
+      <button type="button" id="btnSaveLocal" class="btn btn-outline btn-sm">💾 Save Offline</button>
+      <button type="button" id="btnExport" class="btn btn-outline btn-sm">📥 Export JSON</button>
     </div>
-
-    <div class="form-group">
-      <label for="appliedOn">Applied On</label>
-      <input type="date" id="appliedOn" name="appliedOn">
-    </div>
-
-    <div class="form-group">
-      <label for="jobUrl">Job URL</label>
-      <input type="url" id="jobUrl" name="jobUrl">
-    </div>
-
-    <div class="form-group">
-      <label for="status">Status</label>
-      <select id="status" name="status">
-        <option value="Applied">Applied</option>
-        <option value="Interview">Interview</option>
-        <option value="Offer">Offer</option>
-        <option value="Rejected">Rejected</option>
-        <option value="Withdrawn">Withdrawn</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" rows="3"></textarea>
-    </div>
-
-    <div class="actions">
-      <button type="button" id="btnSaveLocal" class="btn btn-green">Save Locally</button>
-      <button type="button" id="btnSaveCloud" class="btn btn-blue hidden">Save to Cloud</button>
-      <button type="button" id="btnExport" class="btn btn-outline">Export JSON</button>
-    </div>
-  </form>
+  </main>
 
   <hr>
 
+  <!-- Auth Section -->
   <section id="authSection">
     <div id="loggedOutView">
-      <h3>Cloud Sync</h3>
+      <h3>Sync with Dashboard</h3>
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email">
+        <input type="email" id="email" placeholder="Email address">
       </div>
       <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password">
+        <input type="password" id="password" placeholder="Password">
       </div>
       <div class="auth-actions">
-        <button type="button" id="btnLogin" class="btn btn-blue">Log In</button>
-        <button type="button" id="btnSignup" class="btn btn-outline">Sign Up</button>
+        <button type="button" id="btnLogin" class="btn btn-blue btn-sm">Log In</button>
+        <button type="button" id="btnSignup" class="btn btn-outline btn-sm">Sign Up</button>
       </div>
     </div>
     
     <div id="loggedInView" class="hidden">
-      <p>Logged in as: <span id="userEmail"></span></p>
-      <button type="button" id="btnLogout" class="btn btn-outline">Log Out</button>
+      <div class="user-status">
+        <span class="user-dot"></span>
+        <span id="userEmail"></span>
+      </div>
+      <button type="button" id="btnLogout" class="btn btn-outline btn-sm">Log Out</button>
     </div>
   </section>
 
-  <!-- Load popup logic -->
+  <!-- Popup Controller -->
   <script type="module" src="popup.js"></script>
 </body>
 </html>

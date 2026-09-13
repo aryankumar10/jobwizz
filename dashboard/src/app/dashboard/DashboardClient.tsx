@@ -23,6 +23,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
   const [newCompany, setNewCompany] = useState('');
   const [newSource, setNewSource] = useState<JobSource>('LinkedIn');
   const [newLocation, setNewLocation] = useState('');
+  const [newSalary, setNewSalary] = useState('');
   const [newAppliedOn, setNewAppliedOn] = useState(new Date().toISOString().split('T')[0]);
   const [newJobUrl, setNewJobUrl] = useState('');
   const [newStatus, setNewStatus] = useState<JobStatus>('Applied');
@@ -71,6 +72,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
         company: newCompany,
         source: newSource,
         location: newLocation || null,
+        salary: newSalary || null,
         applied_on: newAppliedOn,
         job_url: newJobUrl || null,
         status: newStatus,
@@ -84,6 +86,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
         company: newCompany,
         source: newSource,
         location: newLocation || null,
+        salary: newSalary || null,
         applied_on: newAppliedOn,
         job_url: newJobUrl || null,
         status: newStatus,
@@ -99,6 +102,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
       setNewRole('');
       setNewCompany('');
       setNewLocation('');
+      setNewSalary('');
       setNewJobUrl('');
       setNewNotes('');
     } catch (err) {
@@ -233,7 +237,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Source</label>
                   <select 
@@ -251,9 +255,19 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
                   <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Location</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. San Francisco, CA / Remote"
+                    placeholder="e.g. Santa Clara, CA / Remote"
                     value={newLocation}
                     onChange={(e) => setNewLocation(e.target.value)}
+                    className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">Salary</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. $40–50/hr or $120k"
+                    value={newSalary}
+                    onChange={(e) => setNewSalary(e.target.value)}
                     className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-md text-sm bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>

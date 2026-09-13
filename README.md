@@ -1,6 +1,6 @@
 # 🚀 JobWizz — Automated Job Application Tracker
 
-**JobWizz** is an end-to-end job application tracking ecosystem built to streamline your job search. It pairs a **Manifest V3 Chrome Extension** (which auto-captures job postings from LinkedIn and Handshake) with a **Next.js Web Dashboard** powered by **Supabase** for real-time tracking, status management, and analytics.
+**JobWizz** is an end-to-end job application tracking ecosystem built to streamline your job search. It pairs a **Manifest V3 Chrome Extension** (with automated Gemini AI and DOM scraping across LinkedIn, Handshake, Indeed, and generic career sites) with a **Next.js Web Dashboard** powered by **Supabase** for real-time tracking, status management, and analytics.
 
 ---
 
@@ -8,11 +8,11 @@
 
 ```mermaid
 flowchart LR
-    A[User browsing LinkedIn / Handshake] --> B[JobWizz Chrome Extension]
-    B -->|Auto-Extracts Job Details| C[Edit & Click Save]
+    A[User browsing LinkedIn / Handshake / Indeed] --> B[JobWizz Chrome Extension]
+    B -->|Automated Gemini AI Extraction| C[Instant Form Populate]
     C -->|Guest Mode| D[Local Storage / Export JSON]
-    C -->|Cloud Mode| E[Supabase Database]
-    E --> F[Live Web Dashboard on Vercel]
+    C -->|Cloud Mode| E[Supabase PostgreSQL]
+    E --> F[Next.js Dashboard on Vercel]
 ```
 
 ---
@@ -29,12 +29,12 @@ The JobWizz extension is ready to use directly in Google Chrome.
 5. Pin the **JobWizz** icon to your browser toolbar for quick access.
 
 ### 2. Auto-Capture Applications
-1. Open any job posting on **LinkedIn** (`linkedin.com/jobs/view/...`) or **Handshake** (`joinhandshake.com/jobs/...`).
+1. Open any job posting on **LinkedIn** (`linkedin.com/jobs/view/...`), **Handshake** (`joinhandshake.com/jobs/...`), **Indeed**, or company career sites (Greenhouse, Lever, etc.).
 2. Click the **JobWizz** extension icon.
-3. The job's **Role**, **Company**, **Location**, **Date Applied**, and **Job Link** will be automatically populated.
-4. Review the details, add optional interview/salary notes, and choose your save mode:
-   - **Save Locally**: Stores the application in your browser. You can click **Export JSON** to download a backup file anytime.
-   - **Save to Cloud**: Sign in directly within the extension popup to sync applications in real time to your web dashboard.
+3. The extension automatically extracts the **Role**, **Company**, **Location**, **Salary / Compensation Range**, **Date Applied**, and **Job Link** using Gemini AI with instant DOM fallback.
+4. Review the details, add optional notes, and choose your save mode:
+   - **Save Locally**: Stores the application in your browser offline. You can click **Export JSON** to download a backup file anytime.
+   - **Save to Cloud**: Sign in directly within the extension popup to sync applications in real time to your cloud dashboard.
 
 ---
 
@@ -47,14 +47,19 @@ If you want to run the full stack locally:
 2. Open the **SQL Editor** in Supabase and run the SQL commands from [`supabase/schema.sql`](./supabase/schema.sql).
 3. Copy your **Project URL** and **Publishable / Anon API Key** from **Project Settings > API**.
 
-### 2. Configure Environment Variables
-- In `dashboard/`, create a `.env.local` file:
+### 2. Configure Environment & Extension Secrets
+- In `dashboard/`, create a `.env.local` file (gitignored):
   ```env
   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-publishable-key
   ```
-- In `extension/lib/supabase.js`, update the top configuration lines:
+- In `extension/lib/`, create `config.js` from the template (gitignored):
+  ```bash
+  cp extension/lib/config.example.js extension/lib/config.js
+  ```
+  Then fill in your keys:
   ```javascript
+  export const GEMINI_API_KEY = 'your-gemini-api-key';
   export const SUPABASE_URL = 'https://your-project.supabase.co';
   export const SUPABASE_ANON_KEY = 'your-supabase-publishable-key';
   ```
@@ -92,13 +97,11 @@ The database schema, indexing, and Row Level Security (RLS) policies are maintai
 ```
 JobWizz/
 ├── extension/          # Chrome Extension source code (Manifest V3)
+│   ├── background/     # Service worker
+│   ├── content/        # Content scripts (LinkedIn, Handshake, Generic)
+│   ├── lib/            # AI (Gemini), Supabase client, Auth, Config, Storage
+│   └── popup/          # Extension popup UI & controller
 ├── dashboard/          # Next.js Web Dashboard source code (App Router)
 └── supabase/           # Database schemas, migrations & security policies
     └── schema.sql
 ```
-
----
-
-## 📄 License
-
-MIT License.

@@ -35,3 +35,7 @@ yarn-error.log*
 
 # Sandbox/temporary artifacts
 mock_home/
+
+# Extension secrets
+extension/lib/config.js
+extension/config.js

@@ -1,5 +1,6 @@
-export const SUPABASE_URL = 'https://hzeousrrnyrezysasnie.supabase.co';
-export const SUPABASE_ANON_KEY = 'sb_publishable_RaDSpqYR88Oit56Wi4aKNg_1xweu1xj';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+
+export { SUPABASE_URL, SUPABASE_ANON_KEY };
 
 /**
  * Helper to make API requests to Supabase REST endpoints
@@ -47,6 +48,7 @@ export async function insertJobToCloud(job) {
     company: job.company,
     source: job.source || 'Other',
     location: job.location || null,
+    salary: job.salary || null,
     applied_on: job.appliedOn || new Date().toISOString().split('T')[0],
     job_url: job.jobUrl || null,
     status: job.status || 'Applied',
