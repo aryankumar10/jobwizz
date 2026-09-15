@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "JobWizz",
+    "slug": "jobwizz-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "jobwizz",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jobwizz.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.jobwizz.app",
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "category": [
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "text/plain"
+            }
+          ]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
