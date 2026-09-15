@@ -4,6 +4,7 @@
     "slug": "jobwizz-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "jobwizz",
     "userInterfaceStyle": "dark",
     "ios": {
@@ -12,7 +13,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0f172a"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
       "package": "com.jobwizz.app",
       "intentFilters": [
