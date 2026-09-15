@@ -8,11 +8,14 @@
 
 ```mermaid
 flowchart LR
-    A[User browsing LinkedIn / Handshake / Indeed] --> B[JobWizz Chrome Extension]
+    A[LinkedIn / Handshake / Indeed / Career Sites] --> B[JobWizz Chrome Extension]
+    A -->|Paste URL or Share Intent| M[JobWizz Android App]
     B -->|Automated Gemini AI Extraction| C[Instant Form Populate]
+    M -->|POST /api/jobs/track + Bearer JWT| C
     C -->|Guest Mode| D[Local Storage / Export JSON]
     C -->|Cloud Mode| E[Supabase PostgreSQL]
-    E --> F[Next.js Dashboard on Vercel]
+    E --> F[Next.js Web Dashboard]
+    E <--> M
 ```
 
 ---
@@ -72,6 +75,24 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### 4. Start the Android / Mobile App (React Native with Expo)
+```bash
+cd mobile
+npm install
+npx expo start
+```
+- **Physical Phone**: Scan the terminal QR code using the free [Expo Go](https://play.google.com/store/apps/details?id=host.exp.exponent) app.
+- **Android Emulator**: Press `a` in the terminal.
+- **Web Browser**: Press `w` in the terminal to preview instantly in your browser.
+
+---
+
+## 📱 Android App Features
+- **⚡ 1-Tap Paste & Track**: Paste any job posting URL or tap **"📋 Paste Clipboard"**. Gemini AI automatically scrapes and parses Role, Company, Location, and Salary via the backend `/api/jobs/track` route.
+- **📤 Native Android Share Target**: When viewing jobs in LinkedIn, Indeed, or Chrome, tap **Share ➡️ JobWizz** to automatically load the link into Quick Track!
+- **📊 Real-time Dashboard**: Filter applications by status (Applied, Interview, Offer, Rejected), search by keyword, edit status/notes on the go, or delete records.
+- **🔄 Universal Cloud Sync**: Shares the same Supabase database and authentication session as your Chrome Extension and Web Dashboard.
+
 ---
 
 ## 🌐 Deploying the Dashboard to Vercel
@@ -82,6 +103,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 4. In **Environment Variables**, add:
    - `NEXT_PUBLIC_SUPABASE_URL` = `https://your-project.supabase.co`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `your-supabase-publishable-key`
+   - `GEMINI_API_KEY` = `your-gemini-api-key`
 5. Click **Deploy**.
 
 ---
@@ -96,12 +118,19 @@ The database schema, indexing, and Row Level Security (RLS) policies are maintai
 
 ```
 JobWizz/
+├── dashboard/          # Next.js Web Dashboard source code (App Router)
 ├── extension/          # Chrome Extension source code (Manifest V3)
 │   ├── background/     # Service worker
 │   ├── content/        # Content scripts (LinkedIn, Handshake, Generic)
 │   ├── lib/            # AI (Gemini), Supabase client, Auth, Config, Storage
 │   └── popup/          # Extension popup UI & controller
-├── dashboard/          # Next.js Web Dashboard source code (App Router)
+├── mobile/             # React Native (Expo) Android App
+│   ├── src/
+│   │   ├── contexts/   # Supabase Auth Provider
+│   │   ├── lib/        # Supabase client, Backend API caller, Types
+│   │   └── screens/    # Quick Track, Dashboard, Settings, Auth
+│   ├── App.tsx         # Root component with bottom tab navigation
+│   └── app.json        # Expo & Android Intent Filter config
 └── supabase/           # Database schemas, migrations & security policies
     └── schema.sql
 ```
