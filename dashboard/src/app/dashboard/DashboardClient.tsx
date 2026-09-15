@@ -188,6 +188,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
               <option value="LinkedIn">LinkedIn</option>
               <option value="Handshake">Handshake</option>
               <option value="Indeed">Indeed</option>
+              <option value="Job Site">Job Site</option>
               <option value="Other">Other</option>
             </select>
           </div>
@@ -258,6 +259,7 @@ export default function DashboardClient({ initialJobs }: DashboardClientProps) {
                     <option value="LinkedIn">LinkedIn</option>
                     <option value="Handshake">Handshake</option>
                     <option value="Indeed">Indeed</option>
+                    <option value="Job Site">Job Site</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>

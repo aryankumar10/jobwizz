@@ -14,7 +14,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 import { useAuth } from '../contexts/AuthContext';
 import { trackJobFromUrl } from '../lib/api';
-import { Job, JobStatus } from '../lib/types';
+import { Job, JobStatus, JobSource } from '../lib/types';
 
 interface QuickTrackScreenProps {
   onJobTracked?: () => void;
@@ -22,6 +22,16 @@ interface QuickTrackScreenProps {
 }
 
 const STATUSES: JobStatus[] = ['Applied', 'Interview', 'Offer', 'Rejected'];
+const SOURCES: JobSource[] = ['LinkedIn', 'Handshake', 'Indeed', 'Job Site', 'Other'];
+
+function detectSource(url: string): JobSource {
+  if (!url) return 'Job Site';
+  const lower = url.toLowerCase();
+  if (lower.includes('linkedin.com')) return 'LinkedIn';
+  if (lower.includes('joinhandshake.com')) return 'Handshake';
+  if (lower.includes('indeed.com')) return 'Indeed';
+  return 'Job Site';
+}
 
 export const QuickTrackScreen: React.FC<QuickTrackScreenProps> = ({
   onJobTracked,
@@ -29,6 +39,7 @@ export const QuickTrackScreen: React.FC<QuickTrackScreenProps> = ({
 }) => {
   const { session } = useAuth();
   const [jobUrl, setJobUrl] = useState('');
+  const [source, setSource] = useState<JobSource>('Job Site');
   const [status, setStatus] = useState<JobStatus>('Applied');
   const [notes, setNotes] = useState('');
   const [appliedOn, setAppliedOn] = useState(new Date().toISOString().split('T')[0]);
@@ -43,14 +54,17 @@ export const QuickTrackScreen: React.FC<QuickTrackScreenProps> = ({
     const handleUrl = (url: string | null) => {
       if (!url) return;
       const parsed = Linking.parse(url);
-      // In Android Share intents or deep links, url can come as query param or path
+      let foundUrl = '';
       if (parsed.queryParams?.url) {
-        setJobUrl(String(parsed.queryParams.url));
+        foundUrl = String(parsed.queryParams.url);
       } else if (parsed.queryParams?.text) {
-        // Shared text often contains URLs from LinkedIn or Chrome
         const text = String(parsed.queryParams.text);
         const match = text.match(/https?:\/\/[^\s]+/);
-        if (match) setJobUrl(match[0]);
+        if (match) foundUrl = match[0];
+      }
+      if (foundUrl) {
+        setJobUrl(foundUrl);
+        setSource(detectSource(foundUrl));
       }
     };
 
@@ -64,13 +78,10 @@ export const QuickTrackScreen: React.FC<QuickTrackScreenProps> = ({
     try {
       const text = await Clipboard.getStringAsync();
       if (text) {
-        // Extract URL if clipboard contains text with a URL
         const match = text.match(/https?:\/\/[^\s]+/);
-        if (match) {
-          setJobUrl(match[0]);
-        } else {
-          setJobUrl(text.trim());
-        }
+        const targetUrl = match ? match[0] : text.trim();
+        setJobUrl(targetUrl);
+        setSource(detectSource(targetUrl));
         setErrorMsg(null);
         setDuplicateWarning(null);
       } else {
@@ -101,6 +112,7 @@ export const QuickTrackScreen: React.FC<QuickTrackScreenProps> = ({
     const res = await trackJobFromUrl(
       {
         jobUrl: jobUrl.trim(),
+        source,
         status,
         notes: notes.trim(),
         appliedOn,
@@ -157,6 +169,7 @@ export const QuickTrackScreen: React.FC<QuickTrackScreenProps> = ({
           value={jobUrl}
           onChangeText={(val) => {
             setJobUrl(val);
+            if (val) setSource(detectSource(val));
             if (errorMsg) setErrorMsg(null);
             if (duplicateWarning) setDuplicateWarning(null);
           }}
@@ -164,6 +177,35 @@ export const QuickTrackScreen: React.FC<QuickTrackScreenProps> = ({
           autoCorrect={false}
           multiline={false}
         />
+
+        {/* Platform / Source Pills */}
+        <View style={[styles.inputLabelRow, { marginTop: 16, marginBottom: 0 }]}>
+          <Text style={styles.label}>Platform / Source</Text>
+          {jobUrl ? (
+            <Text style={styles.autoDetectedTag}>Auto-detected: {source}</Text>
+          ) : null}
+        </View>
+        <View style={styles.statusRow}>
+          {SOURCES.map((src) => {
+            const isSelected = source === src;
+            return (
+              <TouchableOpacity
+                key={src}
+                style={[styles.statusChip, isSelected && styles.sourceChipActive]}
+                onPress={() => setSource(src)}
+              >
+                <Text
+                  style={[
+                    styles.statusChipText,
+                    isSelected && styles.statusChipTextActive,
+                  ]}
+                >
+                  {src}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         {/* Status Pills */}
         <Text style={[styles.label, { marginTop: 16 }]}>Initial Status</Text>
@@ -356,6 +398,15 @@ const styles = StyleSheet.create({
   statusChipActive: {
     backgroundColor: '#6366f1',
     borderColor: '#6366f1',
+  },
+  sourceChipActive: {
+    backgroundColor: '#059669',
+    borderColor: '#10b981',
+  },
+  autoDetectedTag: {
+    fontSize: 11,
+    color: '#34d399',
+    fontWeight: '600',
   },
   statusChipText: {
     color: '#94a3b8',

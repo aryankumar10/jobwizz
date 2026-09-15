@@ -17,6 +17,7 @@ export async function trackJobFromUrl(
       },
       body: JSON.stringify({
         jobUrl: payload.jobUrl.trim(),
+        source: payload.source,
         status: payload.status || 'Applied',
         notes: payload.notes || '',
         appliedOn: payload.appliedOn || new Date().toISOString().split('T')[0],

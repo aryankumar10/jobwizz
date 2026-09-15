@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       status = 'Applied',
       notes = '',
       manualData = {},
+      source = '',
     } = body;
 
     log.info('Job application track request received', {
@@ -152,7 +153,7 @@ Respond with ONLY a valid JSON object:
   "company": "Company name",
   "location": "Location (City, State or Remote)",
   "salary": "Salary or empty string if not found",
-  "source": "Platform name (e.g. LinkedIn, Handshake, Indeed, Other)"
+  "source": "Platform name (e.g. LinkedIn, Handshake, Indeed, Job Site, Other)"
 }
 
 Job URL: ${jobUrl}
@@ -206,7 +207,7 @@ ${textForAI.slice(0, 16000)}
       company: aiExtracted.company || manualData.company || '',
       location: aiExtracted.location || manualData.location || '',
       salary: aiExtracted.salary || manualData.salary || '',
-      source: manualData.source || aiExtracted.source || detectSourceFromUrl(jobUrl),
+      source: source || manualData.source || aiExtracted.source || detectSourceFromUrl(jobUrl),
     };
 
     // 7. Last-resort heuristics
@@ -385,12 +386,13 @@ function normalizeJobUrl(url: string): string {
   }
 }
 
-function detectSourceFromUrl(url: string): 'LinkedIn' | 'Handshake' | 'Indeed' | 'Other' {
+function detectSourceFromUrl(url: string): 'LinkedIn' | 'Handshake' | 'Indeed' | 'Job Site' | 'Other' {
+  if (!url) return 'Other';
   const lower = url.toLowerCase();
   if (lower.includes('linkedin.com')) return 'LinkedIn';
   if (lower.includes('joinhandshake.com')) return 'Handshake';
   if (lower.includes('indeed.com')) return 'Indeed';
-  return 'Other';
+  return 'Job Site';
 }
 
 function applyServerHeuristics(text: string, url: string, current: any) {
