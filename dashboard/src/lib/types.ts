@@ -1,5 +1,5 @@
 export type JobStatus = 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'Withdrawn';
-export type JobSource = 'LinkedIn' | 'Handshake' | 'Indeed' | 'Other';
+export type JobSource = 'LinkedIn' | 'Handshake' | 'Indeed' | 'Job Site' | 'Other';
 
 export interface Job {
   id: string;

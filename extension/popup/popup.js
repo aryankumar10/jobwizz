@@ -90,11 +90,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else if (activeTabUrl.includes('indeed.com')) {
         activeSource = 'Indeed';
       } else {
-        activeSource = 'Web Page';
+        activeSource = 'Job Site';
       }
 
       detectedSourceBadge.textContent = activeSource;
-      manualSource.value = activeSource === 'Web Page' ? 'Other' : activeSource;
+      manualSource.value = activeSource;
 
       // Request text & preliminary DOM snapshot from content script
       try {

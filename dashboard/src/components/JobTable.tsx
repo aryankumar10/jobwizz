@@ -25,11 +25,12 @@ const sourceColors: Record<string, string> = {
   LinkedIn: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200 dark:border-sky-800',
   Handshake: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 border-red-200 dark:border-red-800',
   Indeed: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+  'Job Site': 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
   Other: 'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
 };
 
 const statuses: JobStatus[] = ['Applied', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
-const sources: JobSource[] = ['LinkedIn', 'Handshake', 'Indeed', 'Other'];
+const sources: JobSource[] = ['LinkedIn', 'Handshake', 'Indeed', 'Job Site', 'Other'];
 
 export default function JobTable({ 
   jobs, 
